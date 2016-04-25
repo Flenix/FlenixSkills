@@ -4,6 +4,7 @@ import co.uk.silvania.flenixskills.FlenixSkills;
 import co.uk.silvania.rpgcore.skills.SkillLevelBase;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
@@ -26,12 +27,14 @@ public class SkillAerobatics extends SkillLevelBase implements IExtendedEntityPr
 	public static String staticSkillId;
 	public boolean addedXp = false;
 	public float prevTickFall = 0;
+	public float prevHealth = 0;
 	
 	public SkillAerobatics(EntityPlayer player, String skillID) {
 		super(skillID);
 		staticSkillId = skillID;
 		this.xp = 0;
 		this.prevTickFall = 0;
+		this.prevHealth = 0;
 		this.addedXp = false;
 	}
 
@@ -44,6 +47,7 @@ public class SkillAerobatics extends SkillLevelBase implements IExtendedEntityPr
 		NBTTagCompound nbt = new NBTTagCompound();
 		nbt.setFloat(skillId + "xp", xp);
 		nbt.setFloat(skillId + "prevFall", prevTickFall);
+		nbt.setFloat(skillId + "prevHealth", prevHealth);
 		nbt.setBoolean(skillId + "addedXp", addedXp);
 		compound.setTag(skillId, nbt);
 	}
@@ -89,7 +93,7 @@ public class SkillAerobatics extends SkillLevelBase implements IExtendedEntityPr
 	
 	@SubscribeEvent
 	public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-		if (event.phase == TickEvent.Phase.START && event.player.ridingEntity == null) {
+		if (event.phase == TickEvent.Phase.START && event.player.ridingEntity == null && event.side == Side.SERVER) {
 			EntityPlayer player = event.player;
 			boolean isFlenix = false;
 			if (player.getDisplayName().equals("Flenix")) { isFlenix = true; }
@@ -100,20 +104,29 @@ public class SkillAerobatics extends SkillLevelBase implements IExtendedEntityPr
 				if (isFlenix) { prtln(player.getDisplayName() + " is in the air! Falling: " + player.fallDistance + " (prevTickFall: " + skill.prevTickFall + " )"); }
 				if (skill.prevTickFall > player.fallDistance && skill.prevTickFall > safeFallDistance(player) && skill.prevTickFall > 3) {
 					if (isFlenix) { prtln(player.getDisplayName() + "got some XP in the !onGround check!");}
-					
-					skill.addXPWithUpdate(skill.prevTickFall/2, event.player);
+
 					skill.addedXp = true;
 				}
-				
-				skill.prevTickFall = player.fallDistance;
+				if (skill.prevTickFall < player.fallDistance || player.fallDistance <= 0) {
+					skill.prevTickFall = player.fallDistance;
+				}
+				skill.prevHealth = player.getHealth();
 			} else {
 				if (skill.prevTickFall > player.fallDistance && skill.prevTickFall > safeFallDistance(player) && skill.prevTickFall > 3) {
 					if (isFlenix) { prtln("Player is now on ground but didn't get the XP, so we'll give it to them now.");}
-					skill.addXPWithUpdate(skill.prevTickFall/2, event.player);
+					
 					skill.addedXp = true;
 				}
 			}
 			if (skill.addedXp) {
+				System.out.println("Prev health: " + skill.prevHealth + ", getHealth: " + player.getHealth());
+				System.out.println("Prev fall: " + skill.prevTickFall + ", getFall: " + player.fallDistance);
+				if (skill.prevHealth <= player.getHealth()) {
+					System.out.println(":)");
+					skill.addXPWithUpdate(skill.prevTickFall/2, event.player);
+				} else {
+					System.out.println(":(");
+				}
 				skill.prevTickFall = 0;
 				skill.addedXp = false;
 			}
