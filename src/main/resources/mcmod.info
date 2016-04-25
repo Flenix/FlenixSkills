@@ -1,0 +1,16 @@
+[
+{
+  "modid": "flenixskills",
+  "name": "Flenix's Skills",
+  "description": "Additional skills for RPGCore.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "http://www.silvaniastudios.com/",
+  "updateUrl": "",
+  "authorList": ["Flenix"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
