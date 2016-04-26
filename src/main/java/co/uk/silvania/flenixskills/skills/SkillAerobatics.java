@@ -95,15 +95,13 @@ public class SkillAerobatics extends SkillLevelBase implements IExtendedEntityPr
 	public void onPlayerTick(TickEvent.PlayerTickEvent event) {
 		if (event.phase == TickEvent.Phase.START && event.player.ridingEntity == null && event.side == Side.SERVER) {
 			EntityPlayer player = event.player;
-			boolean isFlenix = false;
-			if (player.getDisplayName().equals("Flenix")) { isFlenix = true; }
 			
 			SkillAerobatics skill = (SkillAerobatics) SkillAerobatics.get(player, skillId);
 			
 			if (!player.onGround) {
-				if (isFlenix) { prtln(player.getDisplayName() + " is in the air! Falling: " + player.fallDistance + " (prevTickFall: " + skill.prevTickFall + " )"); }
+				prtln(player.getDisplayName() + " is in the air! Falling: " + player.fallDistance + " (prevTickFall: " + skill.prevTickFall + " )");
 				if (skill.prevTickFall > player.fallDistance && skill.prevTickFall > safeFallDistance(player) && skill.prevTickFall > 3) {
-					if (isFlenix) { prtln(player.getDisplayName() + "got some XP in the !onGround check!");}
+					prtln(player.getDisplayName() + "got some XP in the !onGround check!");
 
 					skill.addedXp = true;
 				}
@@ -113,19 +111,14 @@ public class SkillAerobatics extends SkillLevelBase implements IExtendedEntityPr
 				skill.prevHealth = player.getHealth();
 			} else {
 				if (skill.prevTickFall > player.fallDistance && skill.prevTickFall > safeFallDistance(player) && skill.prevTickFall > 3) {
-					if (isFlenix) { prtln("Player is now on ground but didn't get the XP, so we'll give it to them now.");}
+					prtln("Player is now on ground but didn't get the XP, so we'll give it to them now.");
 					
 					skill.addedXp = true;
 				}
 			}
 			if (skill.addedXp) {
-				System.out.println("Prev health: " + skill.prevHealth + ", getHealth: " + player.getHealth());
-				System.out.println("Prev fall: " + skill.prevTickFall + ", getFall: " + player.fallDistance);
 				if (skill.prevHealth <= player.getHealth()) {
-					System.out.println(":)");
 					skill.addXPWithUpdate(skill.prevTickFall/2, event.player);
-				} else {
-					System.out.println(":(");
 				}
 				skill.prevTickFall = 0;
 				skill.addedXp = false;
